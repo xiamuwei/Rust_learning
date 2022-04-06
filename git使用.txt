@@ -1,0 +1,51 @@
+https://www.cnblogs.com/yanjieli/p/10605381.html
+
+1、安装软件
+yum install -y git
+
+2、访问url，更改配置文件
+	git config --global user.name "root"      // 配置个人的用户名
+	git config --global user.email "2827210233@qq.com"      // 配置电子邮件地址
+	
+3、新建一个本地文件夹，cd进去，然后 init建仓
+	git init
+
+4、在仓库目录下编写文件
+将需要上传的文件放到仓库文件夹内
+
+5、提交代码到本地仓库
+	git add * 或者 git add 指定文件名  （*是提交当前文件夹下全部的，也可以指定提交一个文件如：test.py)
+
+6、可以通过git status 指令查看仓库状态
+
+7、提交代码到缓存区
+	git commit -m '描述'  （建议每次提交添加描述，写明本次修改内容）
+
+8、提交到远程仓库
+	git remote add 用户名 http://47.104.x.x:8100/root/yoyo.git（此处通过project内的clone下的clone with http选项获取，记得修改ip地址）
+
+	如：http://gitlab.example.com/root/michael-test.git 修改为http://10.3.6.24/root/michael-test.git
+
+	注意：提交到gihub报错:fatal: remote origin already exists.
+	翻译过来就是远程源码已经存在
+	执行命令：$ git remote rm origin
+	删除远程源
+
+9、最后一步，push到gitlab
+	// git push <远程主机名> <本地分支名>:<远程分支名> 
+	git push -u 用户名 master
+	此处会要求你输入用户名和密码 ，如：root admin123
+
+以上操作执行完成代码会被提交到gitlab
+
+
+如果提交有问题，建议先将仓库克隆到本地
+git clone git@10.3.6.24:root/test.git 
+
+
+
+下载ceph源代码文件
+git clone https://github.com/ceph/ceph.git
+
+当使用git clone下来的工程中带有submodule时，初始的时候，submodule的内容并不会自动下载下来的，此时，只需执行如下命令：
+git submodule update --init --recursive
