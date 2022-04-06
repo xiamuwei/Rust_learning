@@ -10,6 +10,15 @@ rust 做到了内存安全而无需有些编程语言中实现自动垃圾收集
 
 
 
+应用：
+
+1. 传统命令行程序：Rust 编译器可以直接生成目标可执行程序，不需要任何解释程序；
+2. web应用：Rust 可以被编译成 WebAssembly，WebAssembly 是一种 JavaScript 的高效替代品；
+3. 网络服务器：Rust 用极低的资源消耗做到安全高效，且具备很强的大规模并发处理能力，十分适合开发普通或极端的服务器程序；
+4. 嵌入式设备：Rust 同时具有JavaScript 一般的高效开发语法和 C 语言的执行效率，支持底层平台开发。
+
+
+
 ## 安装
 
 + 更新和卸载
@@ -123,6 +132,10 @@ var2 = 34;
 // shadow 变量遮罩。相当于重新声明了一个变量，只是变量名之前使用过
 let var1 = "str";  
 println!("var1 = {}",var1);
+
+
+// 常量只能被设置为常量表达式，而不可以是其他任何只能在运行时计算出的值
+const A:u32 = 2;
 ```
 
 
@@ -131,11 +144,26 @@ println!("var1 = {}",var1);
 
 常量
 
-注：不可变变量和常量的区别
+> + 不可变变量和常量的区别
+>
+> 1. 常量不允许使用mut。常量不仅仅默认不可变，而且自始至终不可变
+> 2. 常量使用`const`关键字而不是 let 关键字来声明，而且值的类型必须注明 (const a: i32 = 123;)
+> 3. 常量可以在任意作用域内声明，包括全局作用域
+> 4. 常量只可以绑定到常量表达式，无法绑定到函数的调用结果或只能在运行时才能计算出的值
+>
+> + 常量与静态变量区别
+>
+> 1. 静态变量中的值有一个固定的内存地址，使用这个值总会访问相同的地址
+> 2. 常量则允许在任何被用到的时候复制其数据
+> 3. 静态变量可以是可变的
+
+
 
 
 
 变量遮蔽 (shadow)
+
+==隐藏是指用同一个名字重新代表另一个变量实体，其类型、可变属性和值都可以变化==
 
 
 
@@ -185,13 +213,20 @@ rust是一种**静态类型**的语言，这意味着它必须在编译期知道
   // 解构，将元组分解并赋值给三个变量
   let (x ,y ,z )= tuple;
   
-  println!("x = {}, y = {}, z = {}",x,y,z);
+  // 没有任何值的元组() 是一种特殊类型，只有一个值，也写成()。该类型被称为单元类型(unit type),而该值被称为单元值。如果表达式不返回任何其他值，则会隐式返回单元值
+  let unit_type = ();
   
+  println!("x = {}, y = {}, z = {}",x,y,z);
   
   // 定义数组
   let arr = [1,2,3];
   // 访问数组元素
   println!("arr 第一个元素 = {}", arr[0])
+  
+  let arr1:[i32; 5] = [1, 2, 3, 4, 5];
+  // 创建一个名为arr2 的数组，size为5，默认值是3
+  let arr2:[3; 5] ;
+  // 等价于 let arr2 = [3, 3, 3, 3, 3];
   ```
   
 
@@ -335,6 +370,9 @@ rust是一种**静态类型**的语言，这意味着它必须在编译期知道
     
 
   + break 和 continue 标签
+  
+    + break ：程序何时停止循环
+    + continue ：告诉程序跳过当前循环剩余代码，并转到下一个迭代
 
 
 
@@ -348,10 +386,11 @@ rust是一种**静态类型**的语言，这意味着它必须在编译期知道
 
 ```rust
 // 在函数签名中，必须声明每个参数的类型
+// 对于函数返回值，我们不需要对返回值命名，但要在-> 箭头后面声明它的类型
 fn test(a int ,b bool) -> bool{
     // 函数体
     let mut a = 6; // 语句
-    a + 1  
+    a + 1  // 表达式
 }
 ```
 
@@ -370,7 +409,9 @@ fn test(a int ,b bool) -> bool{
 
 ## 所有权
 
-所有权是rust最为与众不同的特性，它让rust无需垃圾回收器即可保证内存安全。==需要注意的是所有权是针对堆上的数据来说的==
+所有权是rust最为与众不同的特性，它让rust无需垃圾回收器（garbage collector）即可保证内存安全。==需要注意的是所有权是针对堆上的数据来说的==
+
+通过所有权系统管理内存，编译器在**编译时**会根据一系列的规则进行检查。在运行时，所有权系统的任何功能都不会减慢程序
 
 
 
@@ -523,7 +564,7 @@ slice 引用集合中一段连续的元素序列，而不是引用整个集合
 fn main() {
     let s = String::from("hello world");
 
-    let hello = &s[0..5];
+    let hello = &s[0..5];  // .. 是rust的循环语法，&代表的是引用符号
     let world = &s[6..11];
 }
 ```
@@ -542,7 +583,7 @@ let s = "Hello, world!";
 
 ## 结构体
 
-结构体 的每一部分都可以是不同类型
+结构体 的每一部分都可以是不同类型。struct 需要命名各个部分数据以便能清除的表明其值的意义。由于这些名字，结构体比元组更灵活：不需要依赖顺序来指定或访问实例中的值
 
 + 自定义结构体
 
@@ -664,13 +705,20 @@ Option
 
 空值 (Null) 是一个值，它代表没有值。在有空值的语言中，变量总是这两种状态之一：空值和非空值
 
-但是rust没有控制，而是使用一个枚举Option 来实现
+但是rust没有空值，而是使用一个枚举Option 来实现
+
+Option 是标准库中定义的另一个枚举，描述某个值可能存在(某种类型)或者不存在的情况。位于prelude中(预导入模块)
 
 ```rust
 enum Option<T> {
     Some(T),
     None,
 }
+
+let some_number = Some(5);
+let some_string = Some("a string");
+// 如果使用None 而不是Some，需要告诉Rust Option<T> 是什么类型，因为编译器只通过None值无法推断出Some成员保存的值的类型
+let absent_number: Option<i32> = None;
 ```
 
 
@@ -1195,7 +1243,7 @@ fn some_function<T, U>(t: T, u: U) -> i32
 
 rust中的每一个引用都有其生命周期，也就是引用保持有效的作用域。大部分时候生命周期是隐含的并可以推断的
 
-主要目标就是避免悬垂引用
+==主要目标就是避免悬垂引用==
 
 ```rust
 &i32 // 引用
@@ -1293,7 +1341,13 @@ fn expensive_test() {
 
 
 
++ 单元测试
 
+  概念：单元测试倾向于更小而更集中，在隔离的环境中一次测试一个模块，或者是测试私有接口
+
++ 集成测试
+
+  概念：集成测试对于你的库来说则完全是外部的。它们与其他外部代码一样，通过相同的方式使用你的代码，只测试公有接口 而且每个测试都有可能会测试多个模块
 
 
 
@@ -1325,8 +1379,9 @@ fn main() {
   使用fs::read_to_string 接收filename，打开文件，返回包含其内容的Result< String >
 
 ```rust
-use std::{env, string,fs};
+use std::{env, string, fs};
 
+// 一次性读取，适合小文件
 fn main() {
     println!("Hello, world!");
     // 获取命令行参数 ，使用rust标准库提供的函数，也就是 std::env::args
@@ -1338,13 +1393,79 @@ fn main() {
     println!("filename = {} ",filename);
 
     let contents = fs::read_to_string(filename).expect("something went wrong reading the");
+    // 或者 let contents = fs::read(filename).unwrap();
     println!("contents = {}",contents);
+}
+
+
+// 使用字节流读取
+fn main(){
+    let mut buffer = [0u8; 5];
+    // std::fs::File  的open方法是"只读"打开文件，并没有配套的close方法， 因为Rust编译器可以在文件不再被使用时自动关闭文件
+    let mut file = fs::File::open("D:\\text.txt").unwrap();
+   	file.read(&mut buffer).unwrap();
+    println!("{:?}", buffer);
+    file.read(&mut buffer).unwrap();
+    println!("{:?}", buffer);
 }
 ```
 
 
 
++ 文件内容写入
 
+  ```rust
+  use std::fs;
+  
+  
+  // 一次性写入
+  fn main() {
+      // 会直接覆盖原始内容
+      fs::write("D:\\text.txt", "FROM RUST PROGRAM")
+          .unwrap();
+  }
+  
+  
+  // 流式写入：打开方式有 create 和 append 两种
+  use std::io::prelude::*;
+  use std::fs::File;
+  
+  fn main() {
+      let mut file = File::create("D:\\text.txt").unwrap();
+      file.write(b"FROM RUST PROGRAM").unwrap();
+  }
+  
+  // File类中，不存在append静态方法，但是我们可以使用OpenOptions 中的append函数将文件的打开模式设置为追加
+  use std::io::prelude::*;
+  use std::fs::OpenOptions;
+  
+  fn main() -> std::io::Result<()> {
+     
+      let mut file = OpenOptions::new()
+              .append(true).open("D:\\text.txt")?;
+  
+      file.write(b" APPEND WORD")?;
+  
+      Ok(())
+  }
+  
+  
+  // 注意：OpenOptions 是一个灵活的打开文件的方法。它可以设置打开权限，除append权限以外还有read权限和write权限，如果我们想以读写权限打开一个文件可以
+  use std::io::prelude::*;
+  use std::fs::OpenOptions;
+  
+  fn main() -> std::io::Result<()> {
+     
+      let mut file = OpenOptions::new()
+              .read(true).write(true).open("D:\\text.txt")?;
+  
+      file.write(b"COVER")?;
+  
+      Ok(())
+  }
+  ```
+
+  
 
 
 
@@ -1519,15 +1640,61 @@ fn main() {
 
 ## 高级特性
 
-1. 不安全Rust ：用于当需要谁去
-2. 高级trait
-3. 高级类型
-4. 高级函数和闭包
+1. 不安全Rust ：用于当需要舍弃Rust某些保证并负责手动维护
+2. 高级trait ：与trait 相关的关联类型，默认类型参数，完全限定语法，超 trait和 new type 模式
+3. 高级类型 ： 关于newtype 模式的更多内容，类型别名，never类型和动态大小类型
+4. 高级函数和闭包 ： 函数指针和返回闭包
 5. 宏
 
 
 
++ 不安全rust
+  + 解引用裸指针
+  + 调用不安全的函数或者方法
+  + 访问或可变静态变量
+  + 实现不安全trait
+  + 访问 union 的字段
 
++ 高级trait
+
+  + 关联trait
+  + 默认类型参数
+
++ 高级类型
+
+  + 类型别名
+
++ 宏
+
+  宏可以接收不同数量的参数。宏最后以展开的方式来生成比你所手写出的更多代码
+
+  + 声明宏 -- 匹配对应模式然后以另一部分的代码替换当前代码
+
+    ```rust
+    // #[macro_export] 注解说明宏应该是可用的。如果没有该注解，这个宏不能被引入作用域
+    #[macro_export]
+    macro_rules! vec {
+        // 最外层的 $() ，捕获了符合括号内模式的值以用于替换后的代码
+        // $()内的$x:expr ,其匹配rust的任意表达式，并将该表达式记作 $x
+        // $()之后的逗号说明一个可有可无的逗号分隔符可以出现在 $() 所匹配的代码之后
+        // 紧随逗号之后的* 说明该模式匹配多个或者零个* 之前的任何模式
+        ( $( $x:expr ),* ) => {
+            {
+                let mut temp_vec = Vec::new();
+                $(
+                    temp_vec.push($x);
+                )*
+                temp_vec
+            }
+        };
+    }
+    ```
+
+  + 过程宏 -- 接收rust代码作为输入，在这些代码上进行操作，然后产生另一些代码作为输出
+
+    + 自定义派生
+    + 类属性
+    + 类函数
 
 
 
@@ -1540,7 +1707,7 @@ TCP 是一个底层协议，它描述了信息如何从一个 server 到另一�
   + 客户端
 
     ```rust
-    // 服务端
+    // 客户端
     // std::io::prelude 引入作用域来获取读写流所需的特定trait
     use std::io::{Error,Read,Write};
     use std::net::{TcpListener,TcpStream};
@@ -1568,7 +1735,6 @@ TCP 是一个底层协议，它描述了信息如何从一个 server 到另一�
         // bind 函数返回Result<T,E>
         let listener = TcpListener::bind("127.0.0.1:8080")?;
         let mut thread_vec : Vec<thread::JoinHandle<()>> = Vec::new();
-    
     
         // incoming函数是个迭代器
         for stream in listener.incoming(){
@@ -1634,7 +1800,10 @@ TCP 是一个底层协议，它描述了信息如何从一个 server 到另一�
 
   + 服务端
 
+    ```rust
+    ```
 
+    
 
 
 
@@ -1704,3 +1873,11 @@ TCP 是一个底层协议，它描述了信息如何从一个 server 到另一�
   ```
 
   
+
+
+
+
+
+
+
+注：rust没有反射的能力，因此其无法在运行时获取类型信息
