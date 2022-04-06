@@ -245,7 +245,7 @@ rust是一种**静态类型**的语言，这意味着它必须在编译期知道
 >       re: i32,
 >       im: i32
 >   }
->   
+>     
 >   impl From<i32> for Complex{
 >       fn from(re: i32) -> Self {
 >           Complex{
@@ -750,6 +750,50 @@ if let Some(3) = some_u8_value {
 
 
 
+模式匹配的其他用法
+
+```rust
+// 使用 _ 来匹配剩下所有情况，不过它从不绑定任何变量
+
+// 通过 | 来实现多个模式匹配
+match x {
+    1 | 2 => println!("one or two"),
+    3 => println!("three"),
+    _ => println!("anything"),
+}
+
+// 通过 ..= 来实现匹配模式范围。(范围只允许数字或者char值，因为编译器会在编译时检查范围不为空)
+match x {
+    1..=5 => println!("one through five"),
+    _ => println!("something else"),
+}
+
+
+// 通过 @ 允许我们在创建一个存储值的变量的同时，测试其值是否匹配模式
+enum Message {
+    Hello {id :i32},
+}
+
+let msg = Message::Hello{ id :5 };
+
+match msg {
+    // 判断id是否在 3~7 这个范围之间的同时将值赋给id_variable
+    Message::Hello {id :id_variable @ 3..=7 } => {
+        println!("Found an id in range :{}", id_variable);
+    },
+    Message::Hello {id : 10..=12 } => {
+        println!("Found an id in another range ");
+    }
+    Message::Hello {id } => {
+         println!("Found some other id: {}", id);
+    },
+}
+```
+
+
+
+
+
 
 
 ## 常见集合
@@ -887,9 +931,10 @@ rust将错误区分成两个主要类型：可恢复错误 和 不可恢复错�
 
 可恢复错误通常代表向用户报告错误和重试操作是合理情况，比如未找到文件。不可恢复错误通常是bug的同义词，比如尝试访问超过数组结尾的位置。
 
-rust相应的有 可恢复错误 Result<T,E> , 和不可恢复错误 panic 。panic!宏代表一个程序无法处理的状态，并停止执行而不是使用无效或不正确的值继续处理；Result枚举代表操作可能会在一种可能恢复的情况下失败
+rust相应的有 **可恢复错误 Result<T,E> **, 和**不可恢复错误 panic **。panic!宏代表一个程序无法处理的状态，并停止执行而不是使用无效或不正确的值继续处理；Result枚举代表操作可能会在一种可能恢复的情况下失败
 
 ```rust
+// T 和 E 是泛型类型参数。T 代表成功时返回的Ok成员中的数据的类型，而E 代表失败时返回的Err成员中的错误的类型
 enum Result<T, E> {
     Ok(T),
     Err(E),
@@ -920,7 +965,7 @@ fn main() {
 
 如果 `Result` 值是成员 `Ok`，`unwrap` 会返回 `Ok` 中的值。如果 `Result` 是成员 `Err`，`unwrap` 会为我们调用 `panic!`
 
-类似于 `unwrap` 的方法它还允许我们选择 `panic!` 的错误信息：`expect`
+类似于 `unwrap` 的方法它还允许我们选择 `panic!` 的错误信息：`expect`。except允许在调用panic!  时自定义错误信息，而不是像unwrap 使用默认的panic! 信息
 
 ```rust
 use std::fs::File;
@@ -949,7 +994,7 @@ fn read_username_from_file() -> Result<String, io::Error> {
 
     let mut f = match f {
         Ok(file) => file,
-        Err(e) => return Err(e),
+        Err(e) => return Err(e), // 如果打开文件成功，返回Ok值；如果失败，则返回err
     };
 
     let mut s = String::new();
@@ -959,6 +1004,18 @@ fn read_username_from_file() -> Result<String, io::Error> {
         Err(e) => Err(e),
     }
 }
+}
+
+
+
+// 传播错误的简写 ：? 运算符
+// Result 值之后的? 被定义为与上面所示的match表达式一样的功能。如果Result的值是Ok，这个表达式将会返回Ok中的值而程序继续执行。如果值是Err,Err中的值将作为整个函数的返回值，就像使用了return关键字，这样错误就会被传播给了调用者
+// 只有在返回Result 或者其他实现了FromResidual的类型的函数中使用? 运算符
+fn read_username_from_file() -> Result<String, io::Error> {
+    let mut f = File::open("hello.txt")?;
+    let mut s = String::new();
+    f.read_to_string(&mut s)?;
+    Ok(s)
 }
 ```
 
@@ -1297,37 +1354,81 @@ fn main() {
 
 ## 智能指针
 
+智能指针(smart pointer)：是一类数据结构。为了可以方便的控制对象的生命周期，安全的使用动态内存，引入智能指针的概念。智能指针的行为类似常规指针，但拥有额外的元数据和功能，重要的区别是它负责自动释放所指向的对象。
+
+智能指针通常使用结构体实现。==智能指针区别于常规结构体的显著体征在于实现了Deref 和Drop trait==
+
+**Deref trait**提供了解引用的能力；
+
+**Drop trait** 提供了自动析构的能力，允许我们自定义当智能指针离开作用域时运行的代码
+
 
 
 + Box< T> 
 
   Box允许将一个值放在堆上而不是栈上，留在栈上的则是指向堆数据的指针
 
-  + Deref trait
-
-    将智能指针当作常规引用处理
-
-  + Drop trait
-
-    运行清理代码
+  
 
 + Rc< T>
 
-  引用计数智能指针
+  注意：Rc< T> 只能用于单线程场景
+
+  引用计数智能指针 ：意味着记录一个值引用的数量来知晓这个值是否仍在被使用。如果某个值有零个引用，就代表没有任何有效引用并可以被清理
 
 + RefCell< T>
 
-  内部可变性
+  注意：RefCell< T>只能用于单线程场景
+  
+  ==内部可变性==
+  
+  
 
++ Deref trait
 
+  将智能指针当作常规引用处理
 
++ Drop trait
 
+  运行清理代码
+
+  > rust不允许我们主动调用Drop trait的drop方法(rust不允许我们显示调用drop，因为rust仍然会在main的结尾对值自动调用drop，会导致一个double free错误，因为rust会尝试清理两次相同的值)；
+  >
+  > 当我们希望在作用域结束之前就强制释放变量的话，我们可以使用标准库提供的 std::mem::drop
 
 
 
 ## 并发
 
++ thread::spawn 创建一个新线程
 
+  ```rust
+  use std::thread;
+  use std::time::Duration;
+  
+  fn main() {
+      // 返回值类型是JoinHandle
+      thread::spawn(|| {
+          for i in 1..10 {
+              println!("hi number {} from the spawned thread!", i);
+              thread::sleep(Duration::from_millis(1));
+          }
+      });
+  
+      for i in 1..5 {
+          println!("hi number {} from the main thread!", i);
+          thread::sleep(Duration::from_millis(1));
+      }
+  }
+  ```
+
+  
+
++ join 等待所有线程结束
+
++ channel在线程之间通讯
+
++ mutex 共享状态
 
 
 
@@ -1342,6 +1443,115 @@ fn main() {
 ## 高级特性
 
 
+
+
+
+
+
+
+
+## Rust Web
+
+TCP 是一个底层协议，它描述了信息如何从一个 server 到另一个的细节，不过其并不指定信息是什么。HTTP 构建于 TCP 之上，它定义了请求和响应的内容
+
++ TCP
+
+  + 客户端
+
+    ```rust
+    // 服务端
+    // std::io::prelude 引入作用域来获取读写流所需的特定trait
+    use std::io::{Error,Read,Write};
+    use std::net::{TcpListener,TcpStream};
+    use std::thread;
+    use std::time;
+    
+    fn handle_client(mut stream:TcpStream) -> Result<(),Error>{
+        let mut buf = [0;512];
+        for _ in 0..1000 {
+            let bytes_read = stream.read(&mut buf)?;
+            if bytes_read == 0 {
+                return Ok(());
+            }
+    
+            stream.write(&buf[..bytes_read])?;
+            thread::sleep(time::Duration::from_secs(1))
+        }
+    
+        Ok(())
+    }
+    
+    
+    fn main () -> std::io::Result<()>{
+        // 使用bind函数监听地址
+        // bind 函数返回Result<T,E>
+        let listener = TcpListener::bind("127.0.0.1:8080")?;
+        let mut thread_vec : Vec<thread::JoinHandle<()>> = Vec::new();
+    
+    
+        // incoming函数是个迭代器
+        for stream in listener.incoming(){
+            let stream = stream.expect("failed!");
+            let handle = std::thread::spawn(move || {
+                handle_client(stream).unwrap_or_else(|error| eprintln!("{:?}",error));
+            });
+    
+            thread_vec.push(handle);
+        }
+    
+        for handle in thread_vec{
+            handle.join().unwrap();
+        }
+        
+        Ok(())
+    }
+    ```
+
+    
+
+  + 服务端
+
+    ```rust
+    // 服务端
+    use std::io::{self,prelude::*,BufReader,Write};
+    use std::net::TcpStream;
+    use std::str;
+    
+    fn main() -> std::io::Result<()> {
+        let mut stream = TcpStream::connect("127.0.0.1:8080")?;
+        for _ in 0..10 {
+            let mut input = String::new();
+            // 从控制台读取输入
+            io::stdin().read_line(&mut input).expect("failed to read from stdin");
+            // 写数据到stream流中
+            stream.write(input.as_bytes()).expect("failed to write to stream");
+            
+            let mut reader = BufReader::new(&stream);
+    
+            let mut buffer :Vec<u8> = Vec::new();
+    
+            reader.read_until(b'\n', &mut buffer).expect("Could not read into buffer");
+    
+            println!("{}",str::from_utf8(&buffer).expect("Could not write buffer as string"));
+            println!("");
+        }
+    
+        Ok(())
+    }
+    ```
+
+    
+
++ HTTP
+
+  + 客户端
+
+    ```rust
+    ```
+
+    
+
+  + 服务端
 
 
 
