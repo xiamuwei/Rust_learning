@@ -1426,9 +1426,86 @@ fn main() {
 
 + join 等待所有线程结束
 
+  ```rust
+  use std::thread;
+  use std::time::Duration;
+  
+  fn main() {
+      let handle = thread::spawn(|| {
+          for i in 1..10 {
+              println!("hi number {} from the spawned thread!", i);
+              thread::sleep(Duration::from_millis(1));
+          }
+      });
+  	
+      // 如果将 handle.join().unwrap();放在此处,则主线程会等待直到新建线程执行完毕之后才开始执行for 循环
+      
+      for i in 1..5 {
+          println!("hi number {} from the main thread!", i);
+          thread::sleep(Duration::from_millis(1));
+      }
+  
+      handle.join().unwrap();
+      // 通过调用handle的join方法会阻塞当前线程直到handle所代表的线程结束
+      
+  }
+  ```
+
+  
+
 + channel在线程之间通讯
 
+  ```rust
+  use std::{sync::mpsc, thread};
+  
+  fn main (){
+      // mspc 是多个生产者,单个消费者(multiple producer, single consumer)
+      // tx 作为发送者(transmitter)    rx 作为接收者(receiver)
+      let ( tx, rx ) = mpsc::channel();
+  
+      thread::spawn(move || {
+          let val = String::from("hi");
+          // 通道的发送端有一个 send方法 用来获取需要放入通道的值,send方法返回一个Result<T,E>类型,所以如果接收端已经被丢弃了,将没有发送值的目标,所以发送操作会返回错误
+          tx.send(val).unwrap();
+      });
+  
+      // 通道的接收端有两个有用的方法:recv和try_recv. recv 会阻塞主线程执行直到从通道中接受一个值. try_recv 不会阻塞,相反它会立刻返回一个Result<T,E>:ok 值包含可用的信息,而err值代表此时没有任何消息
+      let received = rx.recv().unwrap();
+      println!("Got: {}", received);
+  }
+  ```
+
+  
+
 + mutex 共享状态
+
+  ```rust
+  use std::sync::{Arc, Mutex};
+  use std::thread;
+  
+  fn main() {
+      let counter = Arc::new(Mutex::new(0));
+      let mut handles = vec![];
+  
+      for _ in 0..10 {
+          let counter = Arc::clone(&counter);
+          let handle = thread::spawn(move || {
+              let mut num = counter.lock().unwrap();
+  
+              *num += 1;
+          });
+          handles.push(handle);
+      }
+  
+      for handle in handles {
+          handle.join().unwrap();
+      }
+  
+      println!("Result: {}", *counter.lock().unwrap());
+  }
+  ```
+
+  
 
 
 
