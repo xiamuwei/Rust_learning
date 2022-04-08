@@ -109,9 +109,61 @@ cargo new hello_world //  hello_world 是rust项目名
 
 
 
+## 注释
+
++ 普通注释 ，其内容将被编译器忽略掉
+
+  ```rust
+  // 单行注释，注释内容直到行尾
+  
+  /*
+  	块注释，注释内容一直到结束分割符
+  */
+  ```
+
+  
+
++ ==文档注释 ，其内容将被解析成HTML帮助文档==
+
+  ```rust
+  /// 为接下来的项目生成帮助文档，文档注释位于需要文档的项之前
+  /// Adds one to the number given.
+  ///
+  /// # Examples
+  ///
+  /// ```
+  /// let arg = 5;
+  /// let answer = my_crate::add_one(arg);
+  ///
+  /// assert_eq!(6, answer);
+  /// ```
+  pub fn add_one(x: i32) -> i32 {
+      x + 1
+  }
+  注可以通过 cargo doc 来生成这个文档注释的HTML文档，放在target/doc 目录下
+  而cargo doc --open 命令会构建当前crate文档并在浏览器中打开
+  
+  //! 为注释所属于的项(译注：如crate、模块或函数)生成帮助文档
+  
+  ```
+
+  
+
 
 
 ## 变量
+
+rust是==强类型语言==，但具有自动判断变量类型的能力
+
+> 注：
+>
+> 强类型语言：一旦一个变量被指定了某个数据类型，如果不经过强制转换，那么不可以将其他类型赋给这个变量
+>
+> 弱类型语言：一个变量可以赋不同数据类型的值
+>
+> 静态类型语言：编译期进行数据类型检查
+>
+> 动态类型语言：运行期才做类型检查
 
 rust默认情况下变量是不可变的，可以使用mut关键字使变量可变
 
@@ -144,6 +196,12 @@ const A:u32 = 2;
 
 常量
 
+```rust
+const PI: f64 = 3.14; // 常量
+
+static LANGUAGE: &'static str = "Rust";  // 静态变量
+```
+
 > + 不可变变量和常量的区别
 >
 > 1. 常量不允许使用mut。常量不仅仅默认不可变，而且自始至终不可变
@@ -165,6 +223,15 @@ const A:u32 = 2;
 
 ==隐藏是指用同一个名字重新代表另一个变量实体，其类型、可变属性和值都可以变化==
 
+```rust
+fn main (){
+    let a = 12;
+    let a = "hello";
+}
+```
+
+
+
 
 
 ## 数据类型
@@ -181,12 +248,12 @@ rust是一种**静态类型**的语言，这意味着它必须在编译期知道
   fn main() {
       println!("Hello, world!");
   
-      // 整型
+      // 整型 默认i32
       let integer:i32 = 10;
       // let integer = 10;  自动类型推导
       println!("{}",integer);
   
-      // 浮点型
+      // 浮点型 默认f64
       let float:f32 = 3.2;
       println!("{}",float);
   
@@ -280,7 +347,7 @@ rust是一种**静态类型**的语言，这意味着它必须在编译期知道
 >       re: i32,
 >       im: i32
 >   }
->     
+>       
 >   impl From<i32> for Complex{
 >       fn from(re: i32) -> Self {
 >           Complex{
@@ -378,6 +445,8 @@ rust是一种**静态类型**的语言，这意味着它必须在编译期知道
 
 ## 函数
 
+函数体由 一系列的语句 和 可选的结尾表达式构成
+
 语句和表达式
 
 语句：执行一些操作但不会返回值
@@ -385,14 +454,33 @@ rust是一种**静态类型**的语言，这意味着它必须在编译期知道
 表达式：计算并产生一个值
 
 ```rust
+// rust不关心函数定义在哪里，只需要定义就行。main函数中的代码会按顺序执行
+fn main (){
+    test(1 , true);  // 此处1 , true 是实参
+}
+
 // 在函数签名中，必须声明每个参数的类型
 // 对于函数返回值，我们不需要对返回值命名，但要在-> 箭头后面声明它的类型
-fn test(a int ,b bool) -> bool{
+fn test(a :i32 ,b :bool) -> i32{  // 此处的 a ,b  是形参
     // 函数体
     let mut a = 6; // 语句
+    
+    // 函数隐式返回最后的表达式
     a + 1  // 表达式
 }
 ```
+
+
+
+> 格式化输出
+>
+> 打印操作由std::fmt 里面所定义的一系列宏来处理，包括：
+>
+> - `format!`：将格式化文本写到[`字符串`](https://rustwiki.org/zh-CN/rust-by-example/std/str.html)（String）。（译注：`字符串`是返回值不是参数。）
+> - `print!`：与 `format!` 类似，但将文本输出到控制台（io::stdout）。
+> - `println!`: 与 `print!` 类似，但输出结果追加一个换行符。
+> - `eprint!`：与 `print!` 类似，但将文本输出到标准错误（io::stderr）。
+> - `eprintln!`：与 `eprint!` 类似，但输出结果追加一个换行符。
 
 
 
@@ -401,13 +489,75 @@ fn test(a int ,b bool) -> bool{
 函数式编程风格通常包含将函数作为参数值或其他函数的返回值，将函数赋值给变量以供之后执行等
 
 + 闭包
+
+  ```rust
+  // 注意：闭包会为每个参数和返回值推断一个具体类型，故不需要强制标注参数和返回值的类型
+  // 但是如果对同一个闭包使用不同类型则会得到类型错误，因为第一次调用时所使用的类型将被锁定进比保重
+  /*
+  	let example_closure = |x| x;
+  
+  	let s = example_closure(String::from("hello"));
+  	let n = example_closure(5); // 此处会报错，因为x类型被确定为String
+  */
+  
+  let expensive_closure = |num| {
+      println!("calculating slowly ...");
+      thread::sleep(Duration::from_secs(2));
+      num
+  };
+  
+  // 调用闭包
+  fn generate_workout(intensity: u32, random_number: u32) {
+      let expensive_closure = |num| {
+          println!("calculating slowly...");
+          thread::sleep(Duration::from_secs(2));
+          num
+      };
+  
+      if intensity < 25 {
+          println!(
+              "Today, do {} pushups!",
+              // num 为形参，intensity所代表的值为实参
+              expensive_closure(intensity)
+          );
+          println!(
+              "Next, do {} situps!",
+              expensive_closure(intensity)
+          );
+      } else {
+          if random_number == 3 {
+              println!("Take a break today! Remember to stay hydrated!");
+          } else {
+              println!(
+                  "Today, run for {} minutes!",
+                  expensive_closure(intensity)
+              );
+          }
+      }
+  }
+  ```
+
 + 迭代器
 
+  迭代器负责遍历序列中的每一项和决定序列何时结束的逻辑。当使用迭代器时，我们无需重新实现这些逻辑
+
+  ```rust
+  // 迭代器都是实现了 Iterator trait
+  pub trait Iterator{
+      type Item;
+      // next方法是Iterator 实现者被要求定义的唯一方法。next一次返回迭代器中的一个项，封装在Some中，当迭代器结束时，返回None
+      // Iterator trait有一系列不同的由标准库提供默认实现的方法，一些方法在其定义中调用了next方法，这也就是为什么在实现Iterator trait时要求实现next方法的原因
+      fn next(&mut self) -> Option<Self::Item>;
+  }
+  ```
+
+  
+
+​	
 
 
 
-
-## 所有权
+## ==所有权==
 
 所有权是rust最为与众不同的特性，它让rust无需垃圾回收器（garbage collector）即可保证内存安全。==需要注意的是所有权是针对堆上的数据来说的==
 
@@ -420,6 +570,8 @@ fn test(a int ,b bool) -> bool{
 栈：大小固定，后进先出
 
 堆：大小不固定，缺乏组织
+
+![rust 所有权](D:\备份\截图\rust 所有权.png)
 
 + 变量与数据交互方式
 
@@ -587,41 +739,49 @@ let s = "Hello, world!";
 
 + 自定义结构体
 
-```rust
-struct User {
-    active: bool,
-    username: String,
-    email: String,
-    sign_in_count: u64,
-}
-
-// 创建结构体实例
-// 注意整个实例必须是可变的；Rust 并不允许只将某个字段标记为可变
-let mut user1 = User{
-  	email: String::from("someone@example.com"),
-    username: String::from("someusername123"),
-    active: true,
-    sign_in_count: 1,  
-};
-
-// 如果变量与字段名同名时可以使用简写语法
-fn build_user(email: String, username: String) -> User {
-    User {
-        // 此处email、username的值和变量名一致，故可以省略
-        email,
-        username,
-        active: true,
-        sign_in_count: 1,
-    }
-}
-
-// 使用结构体更新语法从其他实例创建实例
-let user2 = User {
-    email: String::from("another@example.com"),
-    ..user1
-};
-
-```
+  ```rust
+  #[derive(Debug)]
+  struct User {
+      active: bool,
+      username: String,
+      email: String,
+      sign_in_count: u64,
+  }
+  
+  
+  fn main (){
+      // 创建结构体实例
+      // 注意整个实例必须是可变的；Rust 并不允许只将某个字段标记为可变
+      let mut user1 = User{
+          email: String::from("someone@example.com"),
+          username: String::from("someusername123"),
+          active: true,
+          sign_in_count: 1,  
+      };
+  
+      // 如果变量与字段名同名时可以使用简写语法
+      fn build_user(email: String, username: String) -> User {
+          User {
+              // 此处email、username的值和变量名一致，故可以省略
+              email,
+              username,
+              active: true,
+              sign_in_count: 1,
+          }
+      }
+  
+      // 使用结构体更新语法从其他实例创建实例
+      let user2 = User {
+          email: String::from("another@example.com"),
+          ..user1
+      };
+      
+      // Debug 是一个trait，允许我们以一种对开发者有帮助的方式打印结构体，以便当我们调式代码时能看到它的值。我们在定义结构体时显示加上 #[derive(Debug)]注解。
+      // 在{}中加入:? 指示符告诉println! 我们想要使用Debug的输出格式。Debug是一个trait，它允许我们以一种对开发者有帮助的方式打印结构体，以便当我们调试代码时能看到它的值
+      println!("user1 = {:?}",user1);
+      
+  }
+  ```
 
 + 元组结构体
 
@@ -631,25 +791,28 @@ let user2 = User {
   
   fn main() {
       let black = Color(0, 0, 0);
-      let origin = Point(0, 0, 0]);
+      let origin = Point(0, 0, 0);
   }
   ```
 
 + 类单元结构
 
   ```rust
+  // 一个没有任何字段的结构体被称为类单元结构体，因为它们类似于(), 即unit类型
   struct AlwaysEqual;
   
   fn main() {
       let subject = AlwaysEqual;
   }
   ```
-
+  
   
 
 方法
 
-方法与函数类似：使用 fn 关键字和名称声明，可以拥有参数和返回值，同时包含在某处调用该方法时会调用的代码。但它们的第一个参数总是self，它代表调用该方法的结构体实例
+方法与函数类似：使用 fn 关键字和名称声明，可以拥有参数和返回值，同时包含在某处调用该方法时会调用的代码。
+
+但方法是在struct (或enum，trait对象)的上下文中定义；但它们的第一个参数总是self，它代表调用该方法的结构体实例。
 
 关联参数
 
@@ -684,6 +847,9 @@ pub fn struct_func(){
     };
 
     println!("rec = {}",rec.area());
+    
+    // 使用结构体:: 语法调用这个关联函数
+    let sq = Rectangle::square(3);
 }
 ```
 
@@ -699,15 +865,39 @@ pub fn struct_func(){
 
 枚举 (enum) 允许你通过列举可能的成员来定义一个类型
 
+```rust
+enum Message {
+    Quit,
+    Move{x :i32, y :i32},
+    Write(String),
+    ChangeColor(i32, i32, i32),
+}
+
+impl Message {
+    fn call(&self){}
+}
+
+fn main(){
+    let q = Message::Quit;
+    let m = Message::Move{x: 12, y: 24};
+    let w = Message::Write(String::from("Hello"));
+    let c = Message::ChangeColor(0,255,255);
+    
+    m.call();
+}
+```
+
+
+
 
 
 Option
 
+Option 是标准库中定义的另一个枚举，描述某个值可能存在(某种类型)或者不存在的情况。位于prelude中(预导入模块)
+
 空值 (Null) 是一个值，它代表没有值。在有空值的语言中，变量总是这两种状态之一：空值和非空值
 
-但是rust没有空值，而是使用一个枚举Option 来实现
-
-Option 是标准库中定义的另一个枚举，描述某个值可能存在(某种类型)或者不存在的情况。位于prelude中(预导入模块)
+但是==rust没有空值，而是使用一个枚举Option 来实现==
 
 ```rust
 enum Option<T> {
@@ -727,7 +917,7 @@ let absent_number: Option<i32> = None;
 
 match允许我们将一个值与一系列的模式相比较，并根据相匹配的模式执行相应代码
 
-rust模式匹配是穷举式的，这意味着你必须覆盖所有可能的情况
+**rust模式匹配是穷举式的**，这意味着你必须覆盖所有可能的情况
 
 但你可以使用other 覆盖其他所有可能的值，或者通过 _ 可以匹配任意值而不绑定到该值
 
@@ -860,14 +1050,12 @@ match msg {
   let v = vec![1,2,3];
   ```
 
-  
-
   + 增删改查
 
     + 增
 
       ```rust
-      #![allow(unused)]
+    #![allow(unused)]
       fn main() {
       let mut v = Vec::new();
       
@@ -877,11 +1065,11 @@ match msg {
       v.push(8);
       }
       ```
-
+  
     + 删
 
       ```rust
-      
+    
       #![allow(unused)]
       fn main() {
           {
@@ -892,22 +1080,24 @@ match msg {
           } // <- 这里 v 离开作用域并被丢弃
       }
       ```
-
+  
     + 改
 
     + 查
 
       ```rust
-      let v = vec![100, 32, 57];
+    let v = vec![100, 32, 57];
       // 遍历vector中的元素
       for i in &v {
           println!("{}", i);
       }
       ```
-
+  
       
 
 + String，字符串
+
+  UTF-8 编码
 
   创建字符串
 
@@ -1009,6 +1199,23 @@ fn main() {
 
 
 
+为了应对panic，展开或者中止调用栈
+
+默认情况查下，当panic发生：
+
+- 程序展开调用栈 (工作量大)
+  - rust沿着调用栈往回走
+  - 清理每个遇到的函数中的数据
+- 或立即中止调用栈
+  - 不进行清理，直接停止程序
+  - 内存需要OS进行清理
+
+Cargo.toml 中设置profile.release 是否展开或者立即中止
+
+![image-20220310181518258](C:\Users\Administrator\AppData\Roaming\Typora\typora-user-images\image-20220310181518258.png)
+
+
+
 失败时panic的简写：unwrap 和 except
 
 如果 `Result` 值是成员 `Ok`，`unwrap` 会返回 `Ok` 中的值。如果 `Result` 是成员 `Err`，`unwrap` 会为我们调用 `panic!`
@@ -1055,7 +1262,6 @@ fn read_username_from_file() -> Result<String, io::Error> {
 }
 
 
-
 // 传播错误的简写 ：? 运算符
 // Result 值之后的? 被定义为与上面所示的match表达式一样的功能。如果Result的值是Ok，这个表达式将会返回Ok中的值而程序继续执行。如果值是Err,Err中的值将作为整个函数的返回值，就像使用了return关键字，这样错误就会被传播给了调用者
 // 只有在返回Result 或者其他实现了FromResidual的类型的函数中使用? 运算符
@@ -1075,11 +1281,14 @@ fn read_username_from_file() -> Result<String, io::Error> {
 
 ## 泛型
 
-泛型通过在编译时候进行泛型代码的单态化来保证效率。单态化是一个通过填充编译时使用的具体类型，将通用代码转换为特定代码的过程
+泛型通过在编译时候进行泛型代码的单态化来保证效率。单态化是一个通过填充编译时使用的具体类型，将通用代码转换为特定代码的过程。
+
+这意味着在使用泛型时**没有运行时开销**；当代码运行，它的执行效率就跟好像手写每个具体定义的重复代码一样。这个单态化过程正是 Rust 泛型在运行时**极其高效**的原因。
 
 + 在函数定义中使用泛型
 
   ```rust
+  // 如同函数中使用参数，需要在函数签名中声明参数名一样。当在函数签名中使用一个类型函数时，必须在使用它之前就声明它。类型参数声明位于函数名称与参数列表中间的尖括号 <> 中
   fn largest<T>(list: &[T]) -> T {
       let mut largest = list[0];
   
@@ -1089,7 +1298,7 @@ fn read_username_from_file() -> Result<String, io::Error> {
           }
       }
   
-      largest
+      largest // 表达式
   }
   
   fn main() {
@@ -1145,18 +1354,25 @@ fn read_username_from_file() -> Result<String, io::Error> {
       }
   }
   
+  // 意味着Point<f32>类型会有一个方法 `distance_from_origin`，而其他 `T` 不是 `f32` 类型的 `Point<T>` 实例则没有定义此方法。这个方法计算点实例与坐标 (0.0, 0.0) 之间的距离，并使用了只能用于浮点型的数学运算符
+  impl Point<f32> {
+      fn distance_from_origin(&self) -> f32 {
+          (self.x.powi(2) + self.y.powi(2)).sqrt()
+      }
+  }
+  
   fn main() {
       let p = Point { x: 5, y: 10 };
   
       println!("p.x = {}", p.x());
   }
   ```
-
+  
   
 
 
 
-## trait
+## ==trait==
 
 trait类似于其他语言中常被称为接口的功能
 
@@ -1165,6 +1381,9 @@ trait类似于其他语言中常被称为接口的功能
 ```rust
 pub trait Summary{
     fn summarize(&self) -> String; 
+    fn summarize_default (&self) -> String {  // Summary trait的定义，带有一个summarize 方法的默认实现，不需要在每个类型的每个实现中都定义
+        String::from("(Read more...)")
+    }
 }
 
 pub struct NewsArticle {
@@ -1239,7 +1458,7 @@ fn some_function<T, U>(t: T, u: U) -> i32
 
 
 
-## 生命周期
+## ==生命周期==
 
 rust中的每一个引用都有其生命周期，也就是引用保持有效的作用域。大部分时候生命周期是隐含的并可以推断的
 
@@ -1254,6 +1473,7 @@ rust中的每一个引用都有其生命周期，也就是引用保持有效的�
 ```rust
 // 单个引用的生命周期标注本身是没有意义的
 // 生命周期'a 的实际生命周期是 x和y两个生命周期中较小的那个
+// 生命周期注解并不改变任何引用的生命周期的长短。生命周期注解描述了多个引用生命周期相互的关系，而不影响其生命周期
 pub fn live_date(){
     let str1 = "hello";
     let str2 = "world";
@@ -1290,15 +1510,28 @@ fn longest_test<'a> (x : &'a str, y : &'a str) -> &'a str {
 
 ## 测试
 
+当运行多个测试时，Rust默认使用线程来并行运行。这意味着测试会更快的运行完毕，所以你可以更快的得到代码能否工作的反馈。因为测试是在同时运行的，你应该确保测试不能相互依赖，或依赖任何共享的状态，包括依赖共享的环境，比如当前工作目录或者环境变量。
+
+如果你不希望测试并行运行，或者想要更加精确的控制线程的数量，可以传递 `--test-threads` 参数和希望使用线程的数量给测试二进制文件。例如
+
+```rust
+$ cargo test -- --test-threads=1
+// 这里将测试线程设置为 `1`，告诉程序不要使用任何并行机制。这也会比并行运行花费更多时间，不过在有共享的状态时，测试就不会潜在的相互干扰了。
+```
+
+
+
+
+
 ```rust
 #[cfg(test)]
 mod tests {
+    // #[test]属性标明哪些函数是测试
     #[test]
     fn it_works() {
         assert_eq!(2 + 2, 4);
     }
 }
-
 
 //输出结果
 $ cargo test
@@ -1316,6 +1549,7 @@ test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
 running 0 tests
 
 test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out
+// `test result: ok.` 意味着所有测试都通过了。`1 passed; 0 failed` 表示通过或失败的测试数量。因为之前我们并没有将任何测试标记为忽略，所以摘要中会显示 `0 ignored`。我们也没有过滤需要运行的测试，所以摘要中会显示`0 filtered out`。`0 measured` 统计是针对性能测试的
 ```
 
 注意：fn行之前的`#[test]` ：这个属性表名这是一个测试函数
@@ -1473,7 +1707,7 @@ fn main(){
 
 
 
-## 智能指针
+## ==智能指针==
 
 智能指针(smart pointer)：是一类数据结构。为了可以方便的控制对象的生命周期，安全的使用动态内存，引入智能指针的概念。智能指针的行为类似常规指针，但拥有额外的元数据和功能，重要的区别是它负责自动释放所指向的对象。
 
@@ -1628,7 +1862,13 @@ fn main(){
 
   
 
++ Send 和 Sync trait 
 
+  Send trait允许在线程间转移所有权
+
+  Sync允许多线程访问
+
+  
 
 ## 面向对象
 
@@ -1695,6 +1935,76 @@ fn main(){
     + 自定义派生
     + 类属性
     + 类函数
+
+
+
+## 数据库
+
+1. 添加依赖 到 Cargo.toml 
+
+   ```rust
+   [dependencies]
+   mysql = "*"
+   chrono = "0.4"  // 时间处理库：用来处理日期和时间列
+   ```
+
+2. 编写代码
+
+   ==查询时间？==
+
+   ```rust
+   use mysql::*;
+   use mysql::prelude::*;
+   
+   fn main(){
+       //设置连接字符串
+       let url="mysql://root:123456@localhost:3306/rust_test";
+       let opts = Opts::from_url(url).unwrap();
+       //创建连接池
+       // 注意：老版本是直接传url字符串即可，新版本要求必须转换为opts类型
+       let pool= Pool::new(opts).unwrap();
+       // Pool::new(url).unwrap();
+   
+       //连接数据库
+       let mut conn=pool.get_conn().unwrap();
+   
+       //数据库操作
+       //1.查询user表
+       //方式1：流式查询  数据逐行读取，数据不会存储在内存中
+       conn.query_iter("Select name,age,gender from person").unwrap()
+       .for_each(|row|{
+           let r:(String,i32,String)=from_row(row.unwrap());
+           println!("name={},age={},gender={}",r.0,r.1,r.2);
+       });
+   
+       //方式2：将数据集取出存储在Vec中
+       let res:Vec<(String,i32,String)>=conn.query("Select name,age,gender from person").unwrap();
+       for r in res{
+           println!("name={},age={},gender={}",r.0,r.1,r.2);
+       }
+       
+       //方式3：将数据转换成Struct
+       struct Person{
+           name:String,
+           age:i32,
+           gender:String
+       }
+       let res=conn.query_map("Select name,age,gender  from person",
+               |(name,age,gender)|Person{
+                   name,
+                   age,
+                   gender
+                   }
+               ).expect("QUERY FAILED");
+       for person in res{
+           println!("name={},age={},gender={}",person.name,person.age,person.gender);
+       }
+   }
+   ```
+
+   
+
+
 
 
 
