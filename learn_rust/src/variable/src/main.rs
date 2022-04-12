@@ -2,7 +2,15 @@ use std::convert::From;
 
 
 fn main() {
-    local_type()
+    
+    let str1:String = String::from("this is test");
+    let str2:&str = "this is happy";
+
+    // 切片
+    let slice = &str1[..4];
+    println!("slice = {}", slice);
+
+    // local_type()
     // complex_type()
 }
 
