@@ -1558,9 +1558,19 @@ trait类似于其他语言中常被称为接口的功能
 ```rust
 pub trait Summary{
     fn summarize(&self) -> String; 
-    fn summarize_default (&self) -> String {  // Summary trait的定义，带有一个summarize 方法的默认实现，不需要在每个类型的每个实现中都定义
+    // Summary trait的定义，带有一个summarize_default  方法的默认实现，不需要在每个类型的每个实现中都定义
+    fn summarize_default (&self) -> String {  
         String::from("(Read more...)")
     }
+    
+    
+    // 默认实现允许调用相同trait中的其他方法，哪怕这些方法没有默认实现。	
+    fn summarize_author(&self) -> String;
+	// 使用时，只需要在实现trait时定义summarize_author即可
+    fn summarize_test(&self) -> String {
+        format!("(Read more from {}...)", self.summarize_author())
+    }
+    
 }
 
 pub struct NewsArticle {
@@ -1604,38 +1614,48 @@ trait bound
 + trait bound语法
 
 ```rust
-pub fn notify(item1: impl Summary, item2: impl Summary) {
+pub fn notify(item1: impl Summary, item2: impl Summary) {}
     
 // 等价于
-pub fn notify<T: Summary>(item1: T, item2: T) {
+pub fn notify<T: Summary>(item1: T, item2: T) {}
 ```
 
 + 通过 + 指定多个 trait bound 
 
 ```rust
-pub fn notify(item: impl Summary + Display) {
+pub fn notify(item: impl Summary + Display) {}
 
 // 等价于
-pub fn notify<T: Summary + Display>(item: T) {
+pub fn notify<T: Summary + Display>(item: T) {}
 ```
 
 + 通过where简化 trait bound
 
 ```rust
-fn some_function<T: Display + Clone, U: Clone + Debug>(t: T, u: U) -> i32 {
+fn some_function<T: Display + Clone, U: Clone + Debug>(t: T, u: U) -> i32 {}
     
 // 等价于
 fn some_function<T, U>(t: T, u: U) -> i32
     where T: Display + Clone,
           U: Clone + Debug
-{
+{}
 ```
 
 
 
 
 
+
+
+孤儿原则：
+
+不能为外部类型实现外部trait。这条规则保证了其他人编写的代码不会破坏你的代码，反之亦然，没有这条规则的话，两个crate可以分别对相同类型实现相同的trait，而rust将无从得知应该使用哪一个实现
+
+
+
 ## ==生命周期==
+
+也是一种泛型
 
 因为引用是只是获取值但不获取所有权, 无法确保所引用的值没有被销毁,为了防止引用一个已经被销毁的对象,引入了生命周期概念
 
@@ -2461,15 +2481,19 @@ TCP 是一个底层协议，它描述了信息如何从一个 server 到另一�
   + 客户端
 
     ```rust
-    ```
-
     
-
-  + 服务端
-
-    ```rust
     ```
-
+  ```
+  
+  
+  ```
+  
++ 服务端
+  
+    ```rust
+    
+  ```
+  
     
 
 
