@@ -619,6 +619,8 @@ fn fizzbuzz_to (n:i32){
 
 函数式编程风格通常包含将函数作为参数值或其他函数的返回值，将函数赋值给变量以供之后执行等
 
+闭包通过匿名函数实现
+
 + 闭包
 
   ```rust
@@ -684,6 +686,19 @@ fn fizzbuzz_to (n:i32){
       closure_inferred(i);
       println!("i = {}",i);
   }
+  
+  
+  
+  
+  fn capture_function(){
+      let mut x = 1;
+      let mut t = ||{x+=1;println!("{}",x);};
+      t();
+      t();
+  } 
+  // 结果
+  2
+  3
   ```
 
 + 迭代器
@@ -2031,6 +2046,18 @@ fn main() {
 }
 
 // 注意：Vector的第一个值是"target\\debug\\minigrep.exe" ，它是我们二进制文件的名称
+
+
+// 获取命令行参数
+let args = std::env::args();
+for i in args {
+    println!("{}",i);
+}
+
+// 命令行输入
+let mut buf = String::new();
+stdin().read_line(&mut buf).expect("failed to read line.");
+println!("Your input line is \n{}",buf);
 ```
 
 + 读取文件内容 -- `std::fs` 
@@ -2040,32 +2067,28 @@ fn main() {
 ```rust
 use std::{env, string, fs};
 
-// 一次性读取，适合小文件
-fn main() {
-    println!("Hello, world!");
-    // 获取命令行参数 ，使用rust标准库提供的函数，也就是 std::env::args
-    let args: Vec<String> = env::args().collect();
+// 读取文件
+// 一次性读取文件 适合小文件
+fn read_file_once(){
+    // 使用read_to_string 完成对文本文件的读取
+    let content = fs::read_to_string("E:\\depository\\Rust_learning\\learn_rust\\src\\io-test\\src\\test").unwrap();
+    println!("{}",content);
 
-    println!("{:?}",args); // ["target\\debug\\minigrep.exe", "mingrep"] 命令行参数收集到一个Vector中
-
-    let filename = &args[1];
-    println!("filename = {} ",filename);
-
-    let contents = fs::read_to_string(filename).expect("something went wrong reading the");
-    // 或者 let contents = fs::read(filename).unwrap();
-    println!("contents = {}",contents);
+    // 二进制文件读取
+    let content =  fs::read("E:\\depository\\Rust_learning\\learn_rust\\src\\io-test\\src\\test").unwrap();
+    println!("{:?}",content);
 }
 
+// 使用文件流读取，适合大文件
+fn read_file_stream(){
+    let mut buf:[u8;5]= [0;5];
+    //等价于 let mut buf= [0u8;5]; 
+    //std::fs 模块中的 File 类是描述文件的类，可以用于打开文件，再打开文件之后，我们可以使用 File 的 read 方法按流读取文件的下面一些字节到缓冲区（缓冲区是一个 u8 数组），读取的字节数等于缓冲区的长度
+    let mut file = fs::File::open("E:\\depository\\Rust_learning\\learn_rust\\src\\io-test\\src\\test").unwrap();
+    file.read(&mut buf).unwrap();
+    println!("{:?}", buf);
+    // std::fs::File 的 open 方法是"只读"打开文件，并且没有配套的 close 方法，因为 Rust 编译器可以在文件不再被使用时自动关闭文件
 
-// 使用字节流读取
-fn main(){
-    let mut buffer = [0u8; 5];
-    // std::fs::File  的open方法是"只读"打开文件，并没有配套的close方法， 因为Rust编译器可以在文件不再被使用时自动关闭文件
-    let mut file = fs::File::open("D:\\text.txt").unwrap();
-   	file.read(&mut buffer).unwrap();
-    println!("{:?}", buffer);
-    file.read(&mut buffer).unwrap();
-    println!("{:?}", buffer);
 }
 ```
 
@@ -2085,45 +2108,22 @@ fn main(){
   }
   
   
-  // 流式写入：打开方式有 create 和 append 两种
-  use std::io::prelude::*;
-  use std::fs::File;
+  // 流式写入
+  fn wrtie_file_stream(){
+      let mut file = File::create("E:\\depository\\Rust_learning\\learn_rust\\src\\io-test\\src\\test1.txt").unwrap();
+      file.write(b"buf: &[u8]").unwrap();
   
-  fn main() {
-      let mut file = File::create("D:\\text.txt").unwrap();
-      file.write(b"FROM RUST PROGRAM").unwrap();
-  }
+      // 因为File类中不存在append静态方法
+      // 所以 可以使用OpenOptions  选择append，read，write权限等
+      let mut file = OpenOptions::new().append(true).open("E:\\depository\\Rust_learning\\learn_rust\\src\\io-test\\src\\test.txt").unwrap();
+      file.write(b"test2OpenOptions").unwrap();
   
-  // File类中，不存在append静态方法，但是我们可以使用OpenOptions 中的append函数将文件的打开模式设置为追加
-  use std::io::prelude::*;
-  use std::fs::OpenOptions;
-  
-  fn main() -> std::io::Result<()> {
-     
-      let mut file = OpenOptions::new()
-              .append(true).open("D:\\text.txt")?;
-  
-      file.write(b" APPEND WORD")?;
-  
-      Ok(())
-  }
-  
-  
-  // 注意：OpenOptions 是一个灵活的打开文件的方法。它可以设置打开权限，除append权限以外还有read权限和write权限，如果我们想以读写权限打开一个文件可以
-  use std::io::prelude::*;
-  use std::fs::OpenOptions;
-  
-  fn main() -> std::io::Result<()> {
-     
-      let mut file = OpenOptions::new()
-              .read(true).write(true).open("D:\\text.txt")?;
-  
-      file.write(b"COVER")?;
-  
-      Ok(())
+      // 以读写权限打开一个文件
+      let mut file = OpenOptions::new().read(true).write(true).open("E:\\depository\\Rust_learning\\learn_rust\\src\\io-test\\src\\test").unwrap();
+      file.write(b"test3OpenOptions").unwrap();
   }
   ```
-
+  
   
 
 
@@ -2248,8 +2248,16 @@ fn main(){
 ## 面向对象
 
 + 封装
+
+  使用 `pub` 关键字来决定模块、类型、函数和方法是公有的，而默认情况下其他一切都是私有的
+
 + 继承
+
+  默认实现
+
 + 多态
+
+  在 Rust 中，通过特性（trait）实现多态
 
 
 
@@ -2483,16 +2491,16 @@ TCP 是一个底层协议，它描述了信息如何从一个 server 到另一�
     ```rust
     
     ```
-  ```
   
   
-  ```
   
-+ 服务端
-  
-    ```rust
+  + 服务端
     
-  ```
+      ```rust
+      
+    ```
+    
+    
   
     
 

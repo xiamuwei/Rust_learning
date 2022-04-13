@@ -48,15 +48,20 @@ fn closure_function(){
 
 
 fn capture_function(){
-    use std::mem;
-    let color = String::from("green");
+    // use std::mem;
+    // let color = String::from("green");
 
-    let print = || println!("{}",color);
-    print();
+    // let print = || println!("{}",color);
+    // print();
    
-    let _reborrow = &color;
-    print();
+    // let _reborrow = &color;
+    // print();
 
+
+    let mut x = 1;
+    let mut t = ||{x+=1;println!("{}",x);};
+    t();
+    t();
 }   
 
 
