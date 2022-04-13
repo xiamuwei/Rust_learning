@@ -1,0 +1,10 @@
+d:\gorepository\Rust_learning\learn_rust\src\rust_exec\src\snake\target\rls\debug\deps\libc-3170299637343e81.rmeta: C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.123\src\lib.rs C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.123\src\macros.rs C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.123\src\fixed_width_ints.rs C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.123\src\windows\mod.rs C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.123\src\windows\gnu\mod.rs C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.123\src\windows\gnu\align.rs
+
+d:\gorepository\Rust_learning\learn_rust\src\rust_exec\src\snake\target\rls\debug\deps\libc-3170299637343e81.d: C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.123\src\lib.rs C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.123\src\macros.rs C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.123\src\fixed_width_ints.rs C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.123\src\windows\mod.rs C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.123\src\windows\gnu\mod.rs C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.123\src\windows\gnu\align.rs
+
+C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.123\src\lib.rs:
+C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.123\src\macros.rs:
+C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.123\src\fixed_width_ints.rs:
+C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.123\src\windows\mod.rs:
+C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.123\src\windows\gnu\mod.rs:
+C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\libc-0.2.123\src\windows\gnu\align.rs:

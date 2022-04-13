@@ -1,0 +1,10 @@
+d:\gorepository\Rust_learning\learn_rust\src\rust_exec\src\snake\target\rls\debug\deps\half-932df43dc3b86dff.rmeta: C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\half-1.8.2\src\lib.rs C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\half-1.8.2\src\bfloat.rs C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\half-1.8.2\src\bfloat\convert.rs C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\half-1.8.2\src\binary16.rs C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\half-1.8.2\src\binary16\convert.rs C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\half-1.8.2\src\slice.rs
+
+d:\gorepository\Rust_learning\learn_rust\src\rust_exec\src\snake\target\rls\debug\deps\half-932df43dc3b86dff.d: C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\half-1.8.2\src\lib.rs C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\half-1.8.2\src\bfloat.rs C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\half-1.8.2\src\bfloat\convert.rs C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\half-1.8.2\src\binary16.rs C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\half-1.8.2\src\binary16\convert.rs C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\half-1.8.2\src\slice.rs
+
+C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\half-1.8.2\src\lib.rs:
+C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\half-1.8.2\src\bfloat.rs:
+C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\half-1.8.2\src\bfloat\convert.rs:
+C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\half-1.8.2\src\binary16.rs:
+C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\half-1.8.2\src\binary16\convert.rs:
+C:\Users\Administrator\.cargo\registry\src\github.com-1ecc6299db9ec823\half-1.8.2\src\slice.rs:

@@ -1,0 +1,12 @@
+[package]
+name = "snake"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# 随机数 * 表示最新版本
+rand = "0.8.5"
+# UI界面
+piston_window = "0.123.0" 

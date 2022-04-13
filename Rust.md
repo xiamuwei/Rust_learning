@@ -106,6 +106,7 @@ cargo new hello_world //  hello_world 是rust项目名
   + cargo run 如果之前编译过，并且源码没有改变，那么就会直接运行二进制文件
   + cargo check 检查代码，确保能够通过编译，但是不产生任何可执行文件。运行比cargo build快很多
   + cargo build [--release]   // 后面的--release参数表示编译正式发布的版本，不然就是开发版本
+  + cargo update 更新依赖项
 
 
 
@@ -623,6 +624,14 @@ fn fizzbuzz_to (n:i32){
 
 + 闭包
 
+  闭包是函数指针和上下文context的组合
+
+  Fn是带有不可变上下文的闭包
+
+  FnMut是带有可变上下文的闭包
+
+  FnOnce拥有其上下文的闭包，所有的闭包都实现了FnOnce
+
   ```rust
   /*
   fn  add_one_v1   (x: u32) -> u32 { x + 1 }
@@ -700,6 +709,34 @@ fn fizzbuzz_to (n:i32){
   2
   3
   ```
+
+  ```rust
+  // move 关键字的使用
+  use std::thread;
+  
+  fn main() {
+      let s = "hello";
+     
+      let handle = thread::spawn(|| {
+          println!("{}", s);
+      });
+  
+      handle.join().unwrap();
+  }
+  
+  // 上述代码错误，在子线程中尝试使用当前函数的资源，一定是错误的！因为所有权机制禁止这种危险情况的产生
+  fn main() {
+      let s = "hello";
+     
+      let handle = thread::spawn(move || {
+          println!("{}", s);
+      });
+  
+      handle.join().unwrap();
+  }
+  ```
+
+  
 
 + 迭代器
 
@@ -2209,11 +2246,31 @@ fn read_file_stream(){
 
 + mutex 共享状态
 
+  互斥器(mutex) 其只允许一个线程访问某些数据。
+
   ```rust
   use std::sync::{Arc, Mutex};
   use std::thread;
   
+  
   fn main() {
+      // 使用关联函数new来创建一个Mutex<T>。
+      // Mutex 是一个智能指针
+      let m = Mutex::new(5);
+  
+      {
+          // 使用lock方法获取锁，以访问互斥器中的数据。这个调用会阻塞当前线程，直到我们拥有锁为止
+          let mut num = m.lock().unwrap();
+          *num = 6;
+      }
+  
+      println!("m = {:?}", m);
+  }
+  
+  
+  
+  fn main() {
+      // Arc是一个安全用于并发环境的原子引用计数类型，替代了Rc智能指针
       let counter = Arc::new(Mutex::new(0));
       let mut handles = vec![];
   
@@ -2239,10 +2296,18 @@ fn read_file_stream(){
 
 + Send 和 Sync trait 
 
+  通常并不需要手动实现Send 和Sync trait，因为由Send 和Sync 的类型组成的类型，自动就是Send 和 Sync的。因为他们是标记trait，甚至不需要实现任何方法。他们只是用来加强并发相关的不可变性。
+
+  手动实现trait涉及到编写不安全的代码
+
   Send trait允许在线程间转移所有权
-
+  
+  > Send trait表明实现了Send 的类型值的所有权可以在线程间传送
+  
   Sync允许多线程访问
-
+  
+  > Sync trait 表明一个实现了Sync 的类型可以安全的在多个线程中拥有其值的引用
+  
   
 
 ## 面向对象
@@ -2313,12 +2378,27 @@ fn read_file_stream(){
             }
         };
     }
+    
+    // let vec:Vec<u32> = vec![1,2,3];
+    
+    // 上述宏等价于,以下述代码替换vec![1,2,3]
+    let mut temp_vec = Vec::new();
+    temp_vec.push(1);
+    temp_vec.push(2);
+    temp_vec.push(3);
+    temp_cev
     ```
-
+  
   + 过程宏 -- 接收rust代码作为输入，在这些代码上进行操作，然后产生另一些代码作为输出
-
+  
     + 自定义派生
+    
+      #[derive] 宏，用于struct 和 enum，可以为其指定随derive属性添加的代码 	
+    
     + 类属性
+    
+      属性宏可以用于任意条目，例如函数
+    
     + 类函数
 
 
