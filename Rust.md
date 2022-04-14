@@ -1,4 +1,6 @@
-# 
+# Rust
+
+
 
 rust是一门系统级编程语言，被设计为保证内存和线程安全
 
@@ -34,7 +36,21 @@ rust 做到了内存安全而无需有些编程语言中实现自动垃圾收集
   rustc --version
   ```
 
-  
+
+
+
+## vscode
+
+rust插件 ：
+
++ rust-analyzer 与rust插件冲突，建议rust-analyzer
+
++ crates：帮助编写Cargo.toml 依赖
++ hint：首选项中打开有关hint的选项
++ REST client : 
++ Toml Language Support
+
+
 
 ## 前言
 
@@ -89,15 +105,20 @@ cargo new hello_world //  hello_world 是rust项目名
     1. 把源文件拷贝到src目录下
     2. 创建Cargo.toml 并填写相应的配置
 
+  + src/lib.rs
+
+    一个程序最多有一个libary crate
+
   + Cargo.toml
-
+  
     ![cargotoml内容](E:\learning\Michael\截图\cargotoml内容.jpg)
-
+  
     + package表明下面的语句用来配置一个package。name、version、edition分别表明项目的名称、版本、使用的rust大版本号
     + dependencies是罗列项目依赖。rust把代码所需要的库叫做依赖
-
+    + profile ：设置各个阶段的相关信息，比如优化级别：opt-level 优化级别越高，所花费时间越长
+  
   + .gitignore 
-
+  
     初始化了一个Git仓库
 
 
@@ -107,6 +128,14 @@ cargo new hello_world //  hello_world 是rust项目名
   + cargo check 检查代码，确保能够通过编译，但是不产生任何可执行文件。运行比cargo build快很多
   + cargo build [--release]   // 后面的--release参数表示编译正式发布的版本，不然就是开发版本
   + cargo update 更新依赖项
+
+生成的目标文件在target/debug目录下
+
+如果是--release 的话，则在target/release 目录下
+
+
+
+
 
 
 
@@ -200,6 +229,7 @@ const A:u32 = 2;
 ```rust
 const PI: f64 = 3.14; // 常量
 
+// 全局变量
 static LANGUAGE: &'static str = "Rust";  // 静态变量
 ```
 
@@ -1695,6 +1725,66 @@ fn some_function<T, U>(t: T, u: U) -> i32
 
 
 
+```rust
+// rust不允许类型间继承，但是支持组合，然而trait之间以好像继承的形式实则是用组合的本质来组织trait, 子 trait相当于超集合， 而父trait相当于子集合，也就是说如果你要impl 一个子 trait, 那么也必须同时Impl其父trait， 因为他们是组合不是继承哟，切记！敏捷软件开发认为： 组合优于继承，这也是工程界的共识经验
+
+trait Person {
+    fn name(&self) -> String;
+}
+ 
+//Person现在是Student的父集， 而Student称为Person的子集。
+//所以rust要求impl子集的同时也必须impl父集。
+trait Student: Person {
+    fn university(&self) -> String;
+}
+ 
+trait Programmer {
+    fn fav_language(&self) -> String;
+}
+ 
+trait CompSciStudent: Programmer + Student {
+    fn git_username(&self) -> String;
+}
+ 
+ 
+struct Foo {};
+impl CompSciStudent for Foo {
+     fn git_username(&self) -> String {
+         String::from("CompSciStudent ")
+     }
+}
+ 
+//注意在impl CompSciStudent trait的时候，必须同时impl trait Programmer and Student and Person.
+impl Programmer for Foo {
+      fn fav_language(&self) -> String {
+           String::from("Programmer ")
+      }
+}
+impl Student for Foo {
+      fn university(&self) -> String {
+          String::from("Student")
+      }
+}
+ 
+impl Person for Foo {
+     fn name(&self) -> String {
+         String::from("Person ") 
+     }
+}
+ 
+fn comp_sci_student_greeting(student: &dyn CompSciStudent) -> String {
+    format!(
+        "My name is {} and I attend {}. My favorite language is {}. My Git username is {}",
+        student.name(),
+        student.university(),
+        student.fav_language(),
+        student.git_username()
+    )
+}
+```
+
+
+
 
 
 
@@ -2623,6 +2713,8 @@ TCP 是一个底层协议，它描述了信息如何从一个 server 到另一�
 
   use 可以使用绝对路径或者相对路径
 
+  使用use 引入mod时候，依然遵循私有性原则，mod中的私有方法等仍然无法访问
+
   ```rust
   mod front_of_house {
       pub mod hosting {
@@ -2634,10 +2726,13 @@ TCP 是一个底层协议，它描述了信息如何从一个 server 到另一�
   
   use front_of_house::hosting; // 相对路径
   
+  use std::collections::HashMap;
+  
   pub fn eat_at_restaurant(){
       // 一般引用到所需函数的上级目录(指定到父级)，避免与本地可能有同名函数，无法区别
       // struct、enum、其他: 指定完整路径(指定到本身)
       hosting::add_to_waitlist();
+      let mut map = HashMap::new();
   }
   ```
 
@@ -2651,7 +2746,47 @@ TCP 是一个底层协议，它描述了信息如何从一个 server 到另一�
   use std::io::Result as IOResult;
   ```
 
-  
+
+
+
+使用第三方库时，使用extern crate
+
+```rust
+extern crate my_library;
+// 通过 extern crate 引入的 crate 或者类库，需要通过两个 :: 双引号逐层将需要引用的module模块，直到调用的功能函数为止
+fn main() {
+    println!("Hello in English: {}", my_library::english::greetings::hello());
+    println!("Goodbye in English: {}", my_library::english::farewells::goodbye());
+
+    println!("Hello in Chinese: {}", my_library::chinese::greetings::hello());
+    println!("Goodbye in Chinese: {}", my_library::chinese::farewells::goodbye());
+}
+
+pub mod greetings;
+pub mod farewells;
+pub use self::greetings::hello;
+pub use self::farewells::goodbye;
+//self 指的是当前模块,super 指的是上级模块
+
+
+extern crate my_library as sayings;
+use sayings::chinese::greetings as ch_greetings;
+use sayings::chinese::farewells::*;
+// 使用嵌套路径，清理大量use语句
+use sayings::english::{self, greetings as en_greetings, farewells as en_farewells};
+// 上面一句等价于
+use sayings::english;
+use sayings::english::greetings as en_greetings;
+use sayings::english::farewells as en_farewells;
+
+
+
+
+// pub(crate) use 和 pub use区别：
+pub use T 导出了T可以被其他crate使用；使用pub(crate) use T 只把T导到当前的crate，其他crate访问不了
+```
+
+
 
 
 
@@ -2682,9 +2817,15 @@ TCP 是一个底层协议，它描述了信息如何从一个 server 到另一�
 >     + 将所有并发计算划分为actor，消息通信易出错
 >     + 可以有效的实现actor模型，但许多实际问题没解决(例如流控制，重试逻辑)
 
+
+
 async编程，是一种并发(concurrent)编程模型
 
-允许你在少数系统线程上运行大量的并发任务
+允许你在少数系统线程上运行大量的并发任务。即不使用多线程，但能达到多线程的效果
+
+
+
+
 
 通过async/await语法，看起来和同步编程差不多
 
@@ -2715,7 +2856,11 @@ async/await
 
 + async
   + async把一段代码转换为一个实现了Future trait的状态机
-    + 虽然在同步方法中调用阻塞函数会阻塞整个线程，但阻塞的Future将放弃对线程的控制，从而允许其他Future来运行
+    + 虽然在同步方法中调用阻塞函数(async 转化的函数)会阻塞整个线程，但阻塞的Future将放弃对线程的控制，从而允许其他Future来运行。
+    
+      futures::executor::block_on 阻挡当前线程，直到提供的Future运行完成
+    
+    + 在async fn中，.await 不会阻塞当前线程，而是异步的等待Future的完成(如果该Future目前无法取得进展，就允许其他任务运行)
 
 语法：
 
@@ -2723,9 +2868,40 @@ async/await
 // 异步函数语法
 async fn do_something(){}
 // 返回的是Future， Future需要由一个执行者来运行
+// 上述代码等价于
+fn do_something() -> impl Future<Output=()>{
+    async {
+        println!("Hello");
+    }
+}
 
 futures::executor::block_on;
-block_on 阻塞当前线程，直到提供的Future运行完成
+// block_on 阻塞当前线程，直到提供的Future运行完成
+
+
+fn main() {
+    let song = block_on(learn_song());
+    block_on(sing_song(song));
+    block_on(dance());
+}
+
+async fn hello_world(){ // 返回futures::Future类型
+    println!("hello world");
+}
+
+struct Song{}
+
+async fn learn_song()->Song{
+    println!("learn_song()");
+    Song{}
+}
+async fn sing_song(song:Song){
+    println!("sing_song()");
+}
+
+async fn dance(){
+    println!("dance()");
+}
 
 
 
@@ -2760,3 +2936,40 @@ fn bar() -> impl Future<Output = u8> {
 
 
 注：rust没有反射的能力，因此其无法在运行时获取类型信息
+
+
+
+## 问题
+
++ rust cargo build一直出现 Blocking waiting for file lock on package cache？
+
+  命令行在当前工程目录下输入 `where cargo`, 得到cargo路径：如C:\Users\Administrator\.cargo\ ，进进入C:\Users\Administrator\.cargo\，ls -al 查看隐藏文件，如果 .package-cache  存在，则删除
+
+  
+
++ cargo build` 时报错：`couldn't find any valid shared libraries matching: ['clang.dll', 'libclang.dll'], set the 'LIBCLANG_PATH' environment variable to a path where one of these files can be found (invalid: [])
+
+  在Windows 上
+  访问 https://www.rust-lang.org/tools/install 页面并按照说明安装 Rust。
+
+  安装需要C++ 的构建工具（C++ build tools） 
+  访问 https://visualstudio.microsoft.com/zh-hans/visual-cpp-build-tools/ 获取。
+  安装时，确保已选择 “C++ build tools”，并包括 Windows 10 SDK 和英文语言包。
+
+  
+
+
+
++  vscode 链接远程主机，然后开发
+
+  [vscode链接远程主机](https://www.bilibili.com/read/cv15857143/)
+
++ 明明在`Cargo.toml`中的`dependencies`已经引入了`crate`，如：`cargo add xxxx`，但是在代码中引入`crate`，就是会提示如下错误：unresolved import
+
+  ```bash
+  # 此时可以试着，在项目根目录下面，运行如下命令：
+  cargo clean
+  cargo build
+  ```
+
+  
