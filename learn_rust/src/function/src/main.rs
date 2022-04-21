@@ -1,6 +1,9 @@
+
 fn main() {
     // println!("{}",is_divisible_by(14,15));
-    capture_function();
+    let i = 32;
+    println!("{}",i);
+    closure_function();
 }
 
 

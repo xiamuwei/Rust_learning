@@ -1,14 +1,16 @@
 use std::fmt::*;
+
 fn main() {
-    // println!("Hello, world!");
-    let new = NewArticle{
-        headlines:String::from("headlines"),
-        location:String::from("location"),
-        author:String::from("author"),
-        content:String::from("content"), 
-    };
-    println!("{}",new.summarize());
-    println!("{}",new.summarize_default());
+    
+    // // println!("Hello, world!");
+    // let new = NewArticle{
+    //     headlines:String::from("headlines"),
+    //     location:String::from("location"),
+    //     author:String::from("author"),
+    //     content:String::from("content"), 
+    // };
+    // println!("{}",new.summarize());
+    // println!("{}",new.summarize_default());
 }
 
 

@@ -1163,6 +1163,8 @@ let s = "Hello, world!";
 
 结构体 的每一部分都可以是不同类型。struct 需要命名各个部分数据以便能清除的表明其值的意义。由于这些名字，结构体比元组更灵活：不需要依赖顺序来指定或访问实例中的值
 
+**方法**（method）与函数类似：它们使用 `fn` 关键字和名称声明，可以拥有参数和返回值，同时包含在某处调用该方法时会执行的代码。不过方法与函数是不同的，因为它们在结构体的上下文中被定义（或者是枚举或 trait 对象的上下文），==并且它们第一个参数总是 `self`，它代表调用该方法的结构体实例==
+
 + 自定义结构体
 
   ```rust
@@ -1960,6 +1962,18 @@ fn longest(x:&str) -> &str{
   > rust不允许我们主动调用Drop trait的drop方法(rust不允许我们显示调用drop，因为rust仍然会在main的结尾对值自动调用drop，会导致一个double free错误，因为rust会尝试清理两次相同的值)；
   >
   > 当我们希望在作用域结束之前就强制释放变量的话，我们可以使用标准库提供的 std::mem::drop
+
+
+
+
+
+原子引用计数Arc类型是一种智能指针，它能够让你以线程安全的方式在线程间共享不可变数据。
+
+原子引用计数确保在对类型的所有引用都结束之前，它不会被丢弃
+
+==需要注意的是，`Arc`只能包含不可变数据==。这是因为如果两个线程试图在同一时间修改被包含的值，`Arc`无法保证避免**数据竞争**。如果你希望修改数据，你应该在`Arc`类型内部封装一个互斥锁保护（Mutex guard）
+
+[Arc使用](https://zhuanlan.zhihu.com/p/300971430)
 
 
 
@@ -2794,6 +2808,10 @@ pub use T 导出了T可以被其他crate使用；使用pub(crate) use T 只把T�
 
 ## Rust异步编程
 
+[异步编程文档](https://rust-lang.github.io/async-book/01_getting_started/01_chapter.html)
+
+
+
 多线程虽然比多进程节省资源，但依然存在昂贵的系统内核调度代价
 
 > 异步编程：消息的发送方不需要等待消息返回就可以处理其它事情
@@ -2802,7 +2820,7 @@ pub use T 导出了T可以被其他crate使用；使用pub(crate) use T 只把T�
 >
 > 
 >
-> + 其他并发模型：
+> + 除了concurrent并发模型以外的，其他并发模型：
 >   + OS线程
 >     + 无需改变编程模型，线程间同步困难，性能开销大
 >     + 线程池可以降低一些成本，但难以支撑大量IO绑定的工作
@@ -2823,6 +2841,8 @@ async编程，是一种并发(concurrent)编程模型
 
 允许你在少数系统线程上运行大量的并发任务。即不使用多线程，但能达到多线程的效果
 
+虽然Rust本身就支持async编程，但很多应用依赖于社区的库：标准库提供了最基本的特性、类型和功能，例如Future trait。async/await 语法直接被Rust编译器支持。futures crate提供了许多实用类型、宏和函数。它们可以用于任何异步应用程序。异步代码、IO和任务生成的执行由“async runtime”提供，例如Tokio和async-std。大多数async应用程序和一些async crate都依赖于特定的运行时
+
 
 
 
@@ -2834,7 +2854,7 @@ async编程，是一种并发(concurrent)编程模型
 >     + 只有poll时才能取得进展；被丢弃的furute就无法取得进展了
 >   + Aysnc 是零成本的
 >     + 使用async，可以无需堆内存分配，和动态调度，对性能大好，且允许在受限环境使用async
->   + 不提供内置运行时
+>   + 不提供内置运行时，可以通过tokio等实现 
 >     + 运行时由社区提供
 >   + 单线程、多线程均支持
 >     + 但优缺点不同
@@ -2861,6 +2881,8 @@ async/await
       futures::executor::block_on 阻挡当前线程，直到提供的Future运行完成
     
     + 在async fn中，.await 不会阻塞当前线程，而是异步的等待Future的完成(如果该Future目前无法取得进展，就允许其他任务运行)
+    
+    + rust不允许在trait中声明async 函数
 
 语法：
 
@@ -2875,12 +2897,13 @@ fn do_something() -> impl Future<Output=()>{
     }
 }
 
-futures::executor::block_on;
+// futures::executor::block_on;
 // block_on 阻塞当前线程，直到提供的Future运行完成
 
 
 fn main() {
     let song = block_on(learn_song());
+    // block_on 阻塞当前线程，直到提供的Future运行完成
     block_on(sing_song(song));
     block_on(dance());
 }
@@ -2899,14 +2922,59 @@ async fn sing_song(song:Song){
     println!("sing_song()");
 }
 
+async fn learn_and_sing(){
+    // 在async fn中，可以使用.await 来等待另一个实现Future trait的完成
+    // 与block_on 不同， .await不会阻塞当前线程，而是异步的等待Future的完成（如果该Future目前无法取得进展，就允许其他任务运行）
+    let song = learn_song().await;
+    sing_song(song).await;
+}
+
 async fn dance(){
     println!("dance()");
 }
-
-
-
-
 ```
+
++ Future trait
+
+  rust async编程的核心，Future是一种异步计算，它可以产生一个值，实现Future的类型表示目前可能还不可用的值
+
+  Future代表一种你可以检验其是否完成的操作：Future可以通过调用poll函数来取得进展。
+
+  poll函数会调用Future尽可能接近完成。如果Future完成了，就发送你会poll::Ready(result)，其中result就是最终的结果；如果Future还无法完成：就返回poll::Pending，并当Future准备好取得更多进展时调用一个waker的wake()函数
+
+  > wake函数：当wake()函数被调用时，当执行器将驱动Future再次调用poll函数，以便Future能取得更多进展。
+  >
+  > 没有wake函数，执行器就不知道特定的Future何时能取得进展（就得不断的poll）
+  >
+  > 通过wake函数，执行器就确切的知道哪些Future已经准备好进行poll的调用 	 
+
+  针对Future，你唯一能做的就是使用poll来敲它，直到一个值掉出来
+
+  ![image-20220421200345761](Rust.assets/image-20220421200345761.png)
+
+
+
++ Waker  类型的作用
+
+  Future在第一次poll的时候通常无法完成任务，所以Future需要保证在准备好取得更多进展后，可以再次被poll
+
+  每次Future被poll，它都是作为一个任务的一部分
+
+  任务（task）就是被提交给执行者的顶层的Future
+
+  Waker提供了wake()方法，它可以被用来告诉执行者：相关的任务应该被唤醒
+
+  当wake()被调用，执行者知道Waker所关联的任务已经准备好取得更多进展，Future应该被再次poll
+
+  Waker实现了clone()，可以复制和存储
+
+
+
++ Executor
+
+  Future是惰性的，除非驱动它们来完成，否则就什么都不做
+
+
 
 async/.await 是rust的特殊语法，在发生阻塞时，它让放弃当前线程的控制权成为可能，这就允许在等待操作完成的时候，允许其他代码取得进展
 
@@ -2973,3 +3041,9 @@ fn bar() -> impl Future<Output = u8> {
   ```
 
   
+
++ \#[inline] 内联
+
+  编译器用内联函数的函数代码 替换 函数调用，从而提高程序运行速度，但是需要占用更多内存。
+
+  程序代码请求将函数作为内联函数时，[编译器](https://so.csdn.net/so/search?q=编译器&spm=1001.2101.3001.7020)并不一定会满足这种要求，编译器可能认为该函数过大 或 注意到 函数调用了自己（**内联函数不能递归**）。

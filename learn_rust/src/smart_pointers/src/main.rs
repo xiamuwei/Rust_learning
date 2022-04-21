@@ -1,10 +1,14 @@
-fn main() {
-    // println!("Hello, world!");
-    let x = 5;
-    let y = &x;
+use std::thread;
+use std::time::Duration;
 
-    println!("x = {}",x);
-    println!("y = {}",*y);
+fn main() {
+    let foo:Vec<i32> = Vec::new();
+
+    thread::spawn(||{
+        thread::sleep(Duration::from_millis(20));
+    });
 }
+
+
 
 
